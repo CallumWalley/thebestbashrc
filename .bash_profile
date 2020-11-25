@@ -12,4 +12,6 @@ HISTSIZE=10000
 
 # Helpful tips for productivity
 alias synergize="curl -sL http://cbsg.sf.net|grep -Eo '^<li>(.*)</li>'|sed "s/\<li\>//g"|sed "s/\<\/li\>//g"|shuf -n1"
+
+# Improvements to 'cat' command.
 alias cat="wget -qO - http://placekitten.com/$[500 + RANDOM % 500]|display"
