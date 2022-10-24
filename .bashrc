@@ -1,0 +1,1 @@
+/home/cwal219/.bashrc_fancy

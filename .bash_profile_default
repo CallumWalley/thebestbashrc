@@ -1,0 +1,27 @@
+# .bash_profile
+
+# Get the aliases and functions
+if [ -f ~/.bashrc ]; then
+        . ~/.bashrc
+fi
+
+export PATH=$HOME/bin:$HOME/.local/bin:$PATH
+
+# set the time zone to New Zealand time
+export TZ="NZ"
+
+# colored prompt
+# black 0; red 1;green 2; yellow 3; blue 4; magenta 5; cyan 6; white 7; 
+COLOR="\[$(tput setaf 2)\]"   ### 2 -> green
+RESET="\[$(tput sgr0)\]"
+export PS1="${COLOR}\t \h \w $ ${RESET}"
+
+
+function swaprc(){
+
+  ln -sf ~/.bashrc_fancy ~/.bashrc
+  ln -sf ~/.bash_profile_fancy ~/.bash_profile
+  source ~/.bash_profile
+  echo "Using fancy bashrc"
+
+}

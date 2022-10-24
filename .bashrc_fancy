@@ -1,0 +1,18 @@
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+        . /etc/bashrc
+fi
+
+ #User specific aliases and functions
+export LC_ALL="en_US.utf8"
+export TZ="NZ"
+
+export TZ=NZ
+export VISUAL=vim
+
+export PATH="$PATH:/home/cwal219/bin"
+export PATH="$PATH:/opt/nesi/vdt"
+export PATH="$PATH:/home/cwal219/.local/bin"
+
+module use /nesi/project/nesi99999/Callum/test_modulefiles # Test modules.
+module load Python/3.9.9-gimkl-2020a # YOU PUT THIS HERE FOR VSCODE. STOP REMOVING.

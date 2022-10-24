@@ -1,0 +1,247 @@
+# .bash_profile
+
+# Get the aliases and functions
+if [ -f ~/.bashrc ]; then
+	. ~/.bashrc
+fi
+
+# User specific environment and startup programs
+HISTSIZE=10000
+
+export SQUEUE_FORMAT="%.17i %.9P %.8Q %.15j %.16u %.2t %.19S %.3D %.4C %.10f %.20r %.12L"
+#export SACCT_FORMAT="JobID%12,JobName%40,Timelimit%9,Submit%12,Start%12,Elapsed%9,TotalCPU%9,Alloc%2,NTask%2,ReqMem%10,MaxRSS%10,State%12,NodeList%12,Partition"
+export SACCT_FORMAT="JobID%12,JobName%40,Timelimit%9,Elapsed%9,TotalCPU%9,Alloc%2,NTask%2,ReqMem%10,MaxRSS%10,State%12,NodeList%12"
+
+# For Mandes eb module
+export NESI_EASYBUILD_PROJECT_ID=nesi99999
+export EASYBUILD_SOURCEPATH="$EASYBUILD_SOURCEPATH:/opt/nesi/src"
+
+# Show weather on first login.
+#[[ "$(date +%a)" == "$(last $USER|sed -n 2p|awk '{print$4}')" ]]||curl wttr.in
+
+
+
+SOON_FORMAT='username:16,name,partition:10,submittime:14,starttime:14,reason:20,feature:9,gres:6,numnodes:.6,numcpus:.6,minmemory:.11,prioritylong:.9,timeleft:.13,arrayjobid:.10,arraytaskid:.14'
+DAWN_FORMAT='username:16,jobid:14,name,partition:10,submittime:13,starttime:13,feature:9,gres:6,numnodes:.6,numcpus:.6,minmemory:.11,prioritylong:.9,timeused:.13'
+
+alias soon='SLURM_TIME_FORMAT="%b %d %H:%M" SLURM_BITSTR_LEN=13 squeue -P -S -p,i --state PD --Format="$SOON_FORMAT"'
+alias dusk='SLURM_TIME_FORMAT="%b %d %H:%M" SLURM_BITSTR_LEN=13 squeue    -S  L   --state R  --Format="$SOON_FORMAT"'
+alias dawn='SLURM_TIME_FORMAT="relative"    squeue -S -S   --state  R --Format="$DAWN_FORMAT"'
+alias past='SLURM_TIME_FORMAT="%b %d %H:%M" squeue -S -e --state CD,CA,F,TO,NF,SE --Format="endtime:14,username:16,jobid:14,name,timeused:13,state:11,feature:9,gres:6,numnodes:.6,numcpus:.6,minmemory:.11"'
+alias idle="sinfo -N | egrep 'idle|resv'  | cut -d' ' -f 1 | uniq | cut -c 1-3 | uniq -c"
+alias sstats='sudo sstat --format="JobId,AveCPU,MinCPU,MaxRSS"'
+alias m='~pmax001/bin/micro'
+alias nano="vim"
+alias nesi9='cd /nesi/project/nesi99999/Callum/'
+alias s="sacct"
+alias l="ls -lAtr"
+alias ll="catn 1"
+alias lll="catn 2"
+alias llll="catn 3"
+
+# Helpful productivity tips
+alias synergize="curl -sL http://cbsg.sf.net|grep -Eo '^<li>(.*)</li>'|sed "s/\<li\>//g"|sed "s/\<\/li\>//g"|shuf -n1"
+
+# Improvements to 'cat' command.
+#alias cat="wget -qO - http://placekitten.com/$[500 + RANDOM % 500]|display"
+
+
+# Fancy exit status.
+if [ -n "${PROMPT_PREFIX+1}" ]; then
+	PROMPT_PREFIX=" ${PROMPT_PREFIX}"
+	WD_STACK="$WD_STACK $PWD"
+else
+	PROMPT_PREFIX=""
+fi
+export PROMPT_PREFIX
+function exitstatus() {
+	EXITSTATUS="$?"
+	echo -ne "\033]0;${HOSTNAME}\007"
+	BOLD="\[\033[1m\]"
+	RED="\[\033[1;31m\]"
+	GREEN="\[\e[32;1m\]"
+	BLUE="\[\e[34;1m\]"
+	OFF="\[\033[m\]"
+	LINE="\n" #\e]2;\$(pwd)\a\e]1;\$(pwd)\a$GREEN\$(s=\$(printf "%*s" \$COLUMNS); echo \${s// /―})\n\e[0m"
+	PROMPT="${PROMPT_PREFIX}${BOLD}[\h \W"
+	if [ $EXITSTATUS -eq 0 ]; then
+		PS1="${LINE}${PROMPT}${GREEN} SUCCESS${OFF}${BOLD} ]\$${OFF} "
+	else
+		PS1="${PROMPT}${RED} FAILURE${OFF}${BOLD} ]\$${OFF} "
+	fi
+	PS2="${BOLD}>${OFF} "
+	# Login purposes.
+	echo "$(date "+%Y-%m-%d.%H:%M:%S") $(pwd) $(history 1)" >>"${HOME}/.logs/bash-history-$(date "+%Y-%m-%d").log"
+}
+
+PROMPT_COMMAND=exitstatus
+
+# 'cat's the most recently edited file.
+function catn() {
+	if [[ $# -ne 1 ]]; then
+		echo "Needs 1 arg"
+		exit 1
+	fi
+	cat $(ls -Art | tail -n${1} | head -n1)
+}
+
+# 'cat's the 2nd most recently edited file.
+#function
+
+# Short
+function sq() {
+	squeue -u $USER
+}
+
+function sact() {
+	sacct -S 2018-12-05 -o JobID,JobName%30,Start%14,Elapsed,Alloc%5,NTask%5,MaxRSS,CPUtime,State,
+}
+# Not sure what this does. Consider removing.
+function lic() {
+	module load ANSYS
+	ANSYSLMD_LICENSE_FILE=/opt/nesi/mahuika/ANSYS/Licenses/admin.lic lmutil lmstat -a
+}
+# DONT USE THIS
+function wacct() {
+	watch -cd -n 0.1 sacct
+}
+# Not sure what this does. Consider removing.
+function wqs() {
+	watch squeue -u $USER
+}
+# Watches thing
+function wess() {
+	watch -cd -n 0.1 tail -n 50 $1
+}
+# Watches most recent thing.
+function wes() {
+	watch -cd -n 0.1 tail -n 50 $(ls -at | head -1)
+}
+# Not sure what this does. Consider removing.
+function wham() {
+	sh5util -j $(sacct -o "jobid" -s COMPLETED | tail -n 1)
+}
+# Not sure what this does. Consider removing.
+function plotnow() {
+	module load Python
+	jobid=$(sacct -o "jobid" -s COMPLETED | tail -n 1)
+	sh5util -j ${jobid}
+	/home/cwal219/handi/plot.py job_${jobid}.h5
+}
+# Not sure what this does. Consider removing.
+function user() {
+	#if not exact, will fail
+	ipa user-show $1 --all 2>/dev/null
+	if [ ${PIPESTATUS[0]} -eq 2 ]; then #Suppress fail and find.
+		if [ $# -eq 2 ]; then
+			#Try first then last
+			ipa user-find --first $1 --last $2 --all 2>/dev/null
+			if [ ${PIPESTATUS[0]} -eq 1 ]; then
+				ipa user-find --last $1 --first $2 --all 2>/dev/null
+				if [ ${PIPESTATUS[0]} -eq 1 ]; then
+					ipa user-find $1 --all 2>/dev/null
+					if [ ${PIPESTATUS[0]} -eq 1 ]; then
+						ipa user-find $2 --all
+						sacct -S 2018-12-05 -o JobID,JobName,Start%14,Elapsed,Alloc%5,NTask%5,MaxRSS,CPUtime,State,
+					fi
+				fi
+
+			fi
+		else
+			ipa user-find $1 --all
+		fi
+	fi
+}
+
+# Not sure what this does. Consider removing.
+function sqwait() {
+	while [ $(squeue -u nesi-apps-admin,$USER | grep -E '[1-9]' | wc -l) -gt 0 ]; do
+		squeue -u nesi-apps-admin,$USER
+		sleep 5
+	done
+	squeue -u nesi-apps-admin,$USER
+	echo -e '\a\a\a'
+}
+
+# Not sure what this does. Consider removing.
+function log2name() {
+	finger -l -p $1 | grep -e '(?<=Name: )(.*)(?= <)'
+}
+
+# Gives last submitted job highest prioroty.
+function bam() {
+	tries=3
+	while true; do
+		jobid=$(sacct -o "jobid" -s PENDING | tail -n 1)
+		if scontrol update jobid=${jobid%_*} nice=-10000 >/dev/null; then
+			echo "Thank you ma'am"
+			sacct
+			return 0
+		elif ((tries < 1)); then
+			echo "Gave up"
+			return 1
+		fi
+		((tries--))
+		sleep 3
+	done
+}
+
+# Opens job script <jobid> either from scontrol or failed job location.
+function showme() {
+	if [ $# -lt 1 ]; then
+		echo "Usage 'showme <jobid>'"
+		return 1
+	fi
+	tmpname="/tmp/jobscript_$1.sl"
+	scontrol write batch_script "$1" "${tmpname}"
+	if [ ! -f "$tmpname" ]; then
+		tmpname="/opt/nesi/var/slurm/failed_batch_scripts$(sacct --allclusters -Xn -j $1 -o user,cluster | head -n1 | tr -s ' ' '/')$1.script"
+	fi
+	less "$tmpname"
+}
+
+# Swaps between user default and fancy bashrc / bash_profile
+function swaprc() {
+
+	ln -sf ~/.bashrc_default ~/.bashrc
+	ln -sf ~/.bash_profile_default ~/.bash_profile
+	unset PS1 PROMPT_PREFIX PROMPT_COMMAND SQUEUE_FORMAT SACCT_FORMAT
+	source ~/.bash_profile
+	echo "Using default bashrc"
+
+}
+
+# Cancels last submitted job.
+function sc() {
+	tries=3
+	while true; do
+		if scancel $(sacct -X -o "jobid" -s PENDING,RUNNING | tail -n 1); then
+			return 0
+		elif ((tries < 1)); then
+			echo "Gave up"
+			return 1
+		fi
+		((tries--))
+		sleep 3
+	done
+}
+
+# Prints a random function and description from '~/.bash_profile'
+function cmdOTD() {
+	line_cmd=$(grep -noP '(?<=^function ).*(?=\(\){)' ~/.bash_profile | shuf -n1)
+	printf "Command of the day '\e[95m\e[1m%s\e[0m'\n" ${line_cmd#*:}
+	while read -r line; do
+		if [[ ! ${line::1} = "#" ]]; then break; fi
+		echo ${line:1}
+	done < <(head -n $((${line_cmd%:*} - 1)) ~/.bash_profile | tac) | tac
+}
+# Prints a random alias and description from '~/.bash_profile'
+function aliasOTD() {
+	cmd=$(grep -o -P '(?<=^alias )[^=]*(?=\=)' ~/.bash_profile | shuf -n1)
+	al=$(alias $cmd)
+	printf "Alias of the day '\e[95m\e[1m%s\e[0m'\nIs an alias of %s" ${cmd} "${al#*=}"
+}
+
+if ((RANDOM % 2)); then cmdOTD; else aliasOTD; fi
+# Local easybuild
+module use /nesi/project/nesi99996/easybuildinstall/share/modules/all/ /nesi/project/nesi99999/Callum/reframe/ReFrame/modulefiles /scale_wlg_persistent/filesets/home/cwal219/test_modulefiles

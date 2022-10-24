@@ -1,0 +1,1 @@
+/home/cwal219/.bash_profile_fancy
